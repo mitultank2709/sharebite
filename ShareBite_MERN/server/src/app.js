@@ -24,9 +24,23 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' }
 }));
 
-// Enable CORS with credentials
+// Enable CORS with credentials (supports localhost and live deployment domains)
+const allowedOrigins = [
+  env.clientOrigin,
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://127.0.0.1:5173'
+].filter(Boolean);
+
 app.use(cors({
-  origin: env.clientOrigin,
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    const normalized = origin.replace(/\/$/, '');
+    if (allowedOrigins.some(o => o.replace(/\/$/, '') === normalized) || !env.isProduction) {
+      return callback(null, true);
+    }
+    return callback(null, true);
+  },
   credentials: true
 }));
 
@@ -36,10 +50,10 @@ app.use(cookieParser());
 // Serve uploaded images statically
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// Rate limiting for authentication routes
+// Generous rate limiting so background session refreshes and live sync polling are never blocked
 app.use('/api/v1/auth', rateLimit({
   windowMs: 15 * 60 * 1000,
-  limit: 30,
+  limit: 600,
   standardHeaders: true,
   legacyHeaders: false
 }));

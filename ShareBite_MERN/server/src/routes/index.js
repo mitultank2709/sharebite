@@ -53,7 +53,7 @@ const cookieOptions = {
   httpOnly: true,
   secure: env.cookieSecure,
   sameSite: env.sameSite,
-  path: '/api/v1/auth',
+  path: '/',
   maxAge: env.refreshDays * 86400000
 };
 
@@ -204,7 +204,7 @@ router.post('/auth/login', async (req, res, next) => {
 
     res.cookie(cookieName, rt, cookieOptions).json({
       success: true,
-      data: { user: safe(u), accessToken: access(u) }
+      data: { user: safe(u), accessToken: access(u), refreshToken: rt }
     });
   } catch (e) {
     next(e);
@@ -213,7 +213,7 @@ router.post('/auth/login', async (req, res, next) => {
 
 router.post('/auth/refresh', async (req, res, next) => {
   try {
-    const token = req.cookies[cookieName];
+    const token = req.cookies[cookieName] || req.body?.refreshToken;
     if (!token) return res.status(401).json({ success: false, message: 'Session expired.' });
     const p = jwt.verify(token, env.refreshSecret, { issuer: 'sharebite' });
     const s = await RefreshSession.findOne({ sessionId: p.sid, user: p.sub });
@@ -230,7 +230,7 @@ router.post('/auth/refresh', async (req, res, next) => {
     await s.save();
     res.cookie(cookieName, next, cookieOptions).json({
       success: true,
-      data: { user: safe(u), accessToken: access(u) }
+      data: { user: safe(u), accessToken: access(u), refreshToken: next }
     });
   } catch (e) {
     next(e);
@@ -238,7 +238,7 @@ router.post('/auth/refresh', async (req, res, next) => {
 });
 
 router.post('/auth/logout', async (req, res) => {
-  const token = req.cookies[cookieName];
+  const token = req.cookies[cookieName] || req.body?.refreshToken;
   if (token) {
     try {
       const p = jwt.verify(token, env.refreshSecret, { issuer: 'sharebite' });
