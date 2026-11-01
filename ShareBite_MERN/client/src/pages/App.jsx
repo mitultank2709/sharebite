@@ -336,27 +336,23 @@ function FoodItemManagerModal({ isOpen, onClose, onItemsUpdated, user }) {
 function Shell({ children }) {
   const { user, logout } = useAuth();
   const nav = useNavigate();
+  const location = useLocation();
   const [open, setOpen] = useState(false);
   const [pendingOrders, setPendingOrders] = useState(0);
   const [pendingUsers, setPendingUsers] = useState(0);
 
   useEffect(() => {
     if (!user) return;
-    function poll() {
-      if (user.role === 'ADMIN') {
-        api.get('/admin/dashboard')
-          .then(r => setPendingOrders(r.data.data.pendingRequests || 0))
-          .catch(() => {});
-      } else if (user.role === 'SUPERADMIN') {
-        api.get('/superadmin/stats')
-          .then(r => setPendingUsers(r.data.data.pendingUsers || 0))
-          .catch(() => {});
-      }
+    if (user.role === 'ADMIN') {
+      api.get('/admin/dashboard')
+        .then(r => setPendingOrders(r.data.data.pendingRequests || 0))
+        .catch(() => {});
+    } else if (user.role === 'SUPERADMIN') {
+      api.get('/superadmin/stats')
+        .then(r => setPendingUsers(r.data.data.pendingUsers || 0))
+        .catch(() => {});
     }
-    poll();
-    const t = setInterval(poll, 6000);
-    return () => clearInterval(t);
-  }, [user]);
+  }, [user, location.pathname]);
 
   async function out() {
     await logout();
@@ -839,8 +835,6 @@ function SuperAdminPanel() {
 
   useEffect(() => {
     loadData();
-    const interval = setInterval(loadData, 5000);
-    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -1640,8 +1634,6 @@ function AdminDashboard() {
 
   useEffect(() => {
     loadData();
-    const interval = setInterval(loadData, 5000);
-    return () => clearInterval(interval);
   }, []);
 
   return (
@@ -1650,9 +1642,14 @@ function AdminDashboard() {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <span className="eyebrow">RESTAURANT OWNER / DONOR OVERVIEW</span>
-            <span className="realtime-tag">
-              <span className="pulse-dot"></span> Live Sync
-            </span>
+            <button
+              className="btn small outline inline-btn"
+              onClick={loadData}
+              title="Refresh dashboard"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '4px 10px', fontSize: 11, borderRadius: 20 }}
+            >
+              <RefreshCw size={11} /> Refresh
+            </button>
           </div>
           <h1>
             Welcome, <em>{user?.restaurantName || 'Restaurant'}</em>.
@@ -1845,8 +1842,6 @@ function AdminFoodPage() {
 
   useEffect(() => {
     loadFoods();
-    const interval = setInterval(loadFoods, 5000);
-    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -2023,6 +2018,9 @@ function AdminFoodPage() {
           </p>
         </div>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <button className="btn outline" onClick={loadFoods} title="Refresh food listings">
+            <RefreshCw size={16} /> Refresh
+          </button>
           <button className="btn secondary" onClick={() => setShowMenuModal(true)}>
             <BookOpen size={17} /> Manage Dishes / Menu Items
           </button>
@@ -2561,8 +2559,6 @@ function AdminOrdersPage() {
 
   useEffect(() => {
     loadRequests();
-    const interval = setInterval(loadRequests, 5000);
-    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -2618,12 +2614,7 @@ function AdminOrdersPage() {
     <main className="wrap page">
       <div className="dashhead">
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span className="eyebrow">CUSTOMER PICKUP MANAGEMENT</span>
-            <span className="realtime-tag">
-              <span className="pulse-dot"></span> Live Sync
-            </span>
-          </div>
+          <span className="eyebrow">CUSTOMER PICKUP MANAGEMENT</span>
           <h1>Customer Details & Order History</h1>
           <p>Review customer contact information, delivery notes, and manage order fulfillment.</p>
         </div>
@@ -2825,10 +2816,7 @@ function FoodBrowse() {
     return () => clearTimeout(t);
   }, [filters]);
 
-  useEffect(() => {
-    const interval = setInterval(fetchFood, 8000);
-    return () => clearInterval(interval);
-  }, [filters]);
+
 
   return (
     <main className="wrap page">
@@ -3165,8 +3153,6 @@ function Customer() {
 
   useEffect(() => {
     loadRequests();
-    const timer = setInterval(loadRequests, 5000);
-    return () => clearInterval(timer);
   }, []);
 
   const [cancelTarget, setCancelTarget] = useState(null);
