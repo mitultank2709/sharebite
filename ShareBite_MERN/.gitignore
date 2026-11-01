@@ -5,5 +5,4 @@ client/dist/
 dist/
 .DS_Store
 *.log
-server/uploads/*
-!server/uploads/.gitkeep
+server/uploads/

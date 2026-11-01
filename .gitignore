@@ -5,5 +5,4 @@ client/dist/
 dist/
 .DS_Store
 *.log
-ShareBite_MERN/server/uploads/*
-!ShareBite_MERN/server/uploads/.gitkeep
+ShareBite_MERN/server/uploads/
