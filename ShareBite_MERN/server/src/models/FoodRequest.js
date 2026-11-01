@@ -1,0 +1,4 @@
+import mongoose from 'mongoose';
+const schema=new mongoose.Schema({food:{type:mongoose.Schema.Types.ObjectId,ref:'Food',required:true,index:true},donor:{type:mongoose.Schema.Types.ObjectId,ref:'User',required:true,index:true},customer:{type:mongoose.Schema.Types.ObjectId,ref:'User',required:true,index:true},receiverName:{type:String,required:true},receiverPhone:{type:String,required:true},requestedQuantity:{type:Number,required:true,min:0.1},unit:{type:String,required:true},pickupAddress:{type:String,required:true},city:{type:String,required:true},instructions:{type:String,default:''},status:{type:String,enum:['PENDING','ACCEPTED','REJECTED','READY_FOR_PICKUP','COMPLETED','CANCELLED'],default:'PENDING',index:true}},{timestamps:true});
+schema.index({customer:1,createdAt:-1});schema.index({donor:1,status:1,createdAt:-1});
+export default mongoose.model('FoodRequest',schema);
