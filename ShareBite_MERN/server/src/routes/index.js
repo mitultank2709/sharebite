@@ -215,15 +215,27 @@ router.post('/auth/refresh', async (req, res, next) => {
   try {
     const token = req.cookies[cookieName] || req.body?.refreshToken;
     if (!token) return res.status(401).json({ success: false, message: 'Session expired.' });
-    const p = jwt.verify(token, env.refreshSecret, { issuer: 'sharebite' });
+    
+    let p;
+    try {
+      p = jwt.verify(token, env.refreshSecret, { issuer: 'sharebite' });
+    } catch {
+      res.clearCookie(cookieName, { ...cookieOptions, maxAge: undefined });
+      return res.status(401).json({ success: false, message: 'Invalid or expired session. Please log in again.' });
+    }
+
     const s = await RefreshSession.findOne({ sessionId: p.sid, user: p.sub });
     if (!s || s.revokedAt || s.tokenHash !== hash(token) || s.expiresAt < new Date()) {
+      res.clearCookie(cookieName, { ...cookieOptions, maxAge: undefined });
       return res.status(401).json({ success: false, message: 'Session expired. Log in again.' });
     }
+
     const u = await User.findById(p.sub);
     if (!u || u.accountStatus !== 'ACTIVE') {
+      res.clearCookie(cookieName, { ...cookieOptions, maxAge: undefined });
       return res.status(401).json({ success: false, message: 'Account unavailable.' });
     }
+
     const next = refresh(u, s.sessionId);
     s.tokenHash = hash(next);
     s.expiresAt = new Date(Date.now() + env.refreshDays * 86400000);

@@ -177,46 +177,107 @@ function FoodItemManagerModal({ isOpen, onClose, onItemsUpdated, user }) {
         {success && <div className="success-msg">{success}</div>}
 
         {/* ADD FOOD ITEM FORM */}
-        <form onSubmit={handleCreate} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr auto', gap: 10, marginBottom: 20, background: '#f5f8f3', padding: 14, borderRadius: 12, border: '1px solid #d5e4cf', alignItems: 'center' }}>
+        <form onSubmit={handleCreate} style={{ display: 'grid', gridTemplateColumns: '2fr 1.3fr auto', gap: 10, marginBottom: 20, background: '#f5f8f3', padding: 14, borderRadius: 12, border: '1px solid #d5e4cf', alignItems: 'center' }}>
           <input
             className="dish-input"
             required
             placeholder="New dish name (e.g. Paneer Tikka Masala)"
             value={name}
             onChange={e => setName(e.target.value)}
+            style={{
+              border: '1.5px solid #c8d8c6',
+              background: '#ffffff',
+              borderRadius: 10,
+              padding: '10px 14px',
+              fontSize: 13,
+              color: '#203126',
+              outline: 'none',
+              height: 42,
+              boxSizing: 'border-box',
+              width: '100%',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+            }}
           />
           <select
             className="dish-select"
             value={foodType}
             onChange={e => setFoodType(e.target.value)}
+            style={{
+              border: '1.5px solid #c8d8c6',
+              background: '#ffffff',
+              borderRadius: 10,
+              padding: '10px 36px 10px 14px',
+              fontSize: 13,
+              color: '#203126',
+              outline: 'none',
+              height: 42,
+              cursor: 'pointer',
+              boxSizing: 'border-box',
+              appearance: 'none',
+              WebkitAppearance: 'none',
+              MozAppearance: 'none',
+              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23245c3b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: 'right 12px center',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+            }}
           >
             <option value="VEG">Veg (Vegetarian)</option>
             <option value="NON_VEG">Non-Veg</option>
           </select>
-          <button className="btn small" disabled={busy}>
+          <button className="btn small" disabled={busy} style={{ height: 42, padding: '0 18px', display: 'inline-flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
             <Plus size={15} /> Add Dish
           </button>
         </form>
 
         {/* EDIT ITEM INLINE FORM */}
         {editingItem && (
-          <form onSubmit={handleUpdate} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr auto auto', gap: 8, marginBottom: 16, background: '#eff6ff', padding: 12, borderRadius: 10, border: '1px solid #bfdbfe', alignItems: 'center' }}>
+          <form onSubmit={handleUpdate} style={{ display: 'grid', gridTemplateColumns: '2fr 1.3fr auto auto', gap: 8, marginBottom: 16, background: '#eff6ff', padding: 12, borderRadius: 10, border: '1px solid #bfdbfe', alignItems: 'center' }}>
             <input
               className="dish-input"
               required
               value={editName}
               onChange={e => setEditName(e.target.value)}
+              style={{
+                border: '1.5px solid #93c5fd',
+                background: '#ffffff',
+                borderRadius: 8,
+                padding: '8px 12px',
+                fontSize: 13,
+                color: '#1e3a8a',
+                outline: 'none',
+                height: 38,
+                boxSizing: 'border-box'
+              }}
             />
             <select
               className="dish-select"
               value={editType}
               onChange={e => setEditType(e.target.value)}
+              style={{
+                border: '1.5px solid #93c5fd',
+                background: '#ffffff',
+                borderRadius: 8,
+                padding: '8px 30px 8px 12px',
+                fontSize: 13,
+                color: '#1e3a8a',
+                outline: 'none',
+                height: 38,
+                cursor: 'pointer',
+                boxSizing: 'border-box',
+                appearance: 'none',
+                WebkitAppearance: 'none',
+                MozAppearance: 'none',
+                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%232563eb' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'right 10px center'
+              }}
             >
               <option value="VEG">Veg</option>
               <option value="NON_VEG">Non-Veg</option>
             </select>
-            <button className="btn small" disabled={busy}>Save</button>
-            <button type="button" className="btn small secondary" onClick={() => setEditingItem(null)}>Cancel</button>
+            <button className="btn small" disabled={busy} style={{ height: 38 }}>Save</button>
+            <button type="button" className="btn small secondary" onClick={() => setEditingItem(null)} style={{ height: 38 }}>Cancel</button>
           </form>
         )}
 
@@ -1771,11 +1832,12 @@ function AdminFoodPage() {
       const loadedItems = it.data.data.items || [];
       setFoodItems(loadedItems);
 
-      // Default foodName to first veg item if empty
-      if (!form.foodName) {
-        const firstVeg = loadedItems.find(i => i.foodType === 'VEG')?.name || 'Dal Rice';
-        setForm(prev => ({ ...prev, foodName: firstVeg }));
-      }
+      // Only set initial default foodName if empty; NEVER overwrite user selection during background polling
+      setForm(prev => {
+        if (prev.foodName) return prev;
+        const firstVeg = loadedItems.find(i => i.foodType === 'VEG')?.name || '';
+        return firstVeg ? { ...prev, foodName: firstVeg } : prev;
+      });
     } catch (e) {
       setError(e.response?.data?.message || 'Error loading food listings');
     }
@@ -1964,7 +2026,16 @@ function AdminFoodPage() {
           <button className="btn secondary" onClick={() => setShowMenuModal(true)}>
             <BookOpen size={17} /> Manage Dishes / Menu Items
           </button>
-          <button className="btn" onClick={() => setShowAddModal(true)}>
+          <button
+            className="btn"
+            onClick={() => {
+              if (!form.foodName) {
+                const defaultDish = foodItems.find(i => i.foodType === form.foodType)?.name || '';
+                if (defaultDish) setForm(prev => ({ ...prev, foodName: defaultDish }));
+              }
+              setShowAddModal(true);
+            }}
+          >
             <Plus size={18} /> Add Food Listing
           </button>
         </div>
@@ -2087,11 +2158,11 @@ function AdminFoodPage() {
                     onChange={e => {
                       const newType = e.target.value;
                       const nextItem = foodItems.find(i => i.foodType === newType)?.name || '';
-                      setForm({
-                        ...form,
+                      setForm(prev => ({
+                        ...prev,
                         foodType: newType,
                         foodName: nextItem
-                      });
+                      }));
                     }}
                   >
                     <option value="VEG">Veg (Vegetarian)</option>
@@ -2112,7 +2183,10 @@ function AdminFoodPage() {
                   </div>
                   <select
                     value={form.foodName}
-                    onChange={e => setForm({ ...form, foodName: e.target.value })}
+                    onChange={e => {
+                      const val = e.target.value;
+                      setForm(prev => ({ ...prev, foodName: val }));
+                    }}
                   >
                     {currentAvailableItems.map(item => (
                       <option key={item._id} value={item.name}>
